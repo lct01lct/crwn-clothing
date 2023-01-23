@@ -9,7 +9,6 @@ import {
   createUserDocumentFromAuth,
   signInAuthUserWithEmailAndPassword,
 } from '@/utils/firebase/firebase.utils';
-import { useUserStore } from '../../contexts/user.context';
 
 const defaultFormFields = {
   email: '',
@@ -20,23 +19,19 @@ const SignInForm = () => {
   const [formFields, setFormFields] = useState(defaultFormFields);
   const { email, password } = formFields;
 
-  const { setCurrentUser } = useUserStore();
-
   const resetFormFields = () => {
     setFormFields(defaultFormFields);
   };
 
   const SignInWithGoogle = async () => {
-    const { user } = await signInWithGooglePopup();
-    const userDocRef = await createUserDocumentFromAuth(user);
+    await signInWithGooglePopup();
   };
 
   const handleSubmit = async event => {
     event.preventDefault();
 
     try {
-      const { user } = await signInAuthUserWithEmailAndPassword(email, password);
-      setCurrentUser(user);
+      await signInAuthUserWithEmailAndPassword(email, password);
 
       resetFormFields();
     } catch (error) {

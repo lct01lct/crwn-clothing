@@ -3,9 +3,13 @@ import { Outlet, Link } from 'react-router-dom';
 import CrwnLogoSrc from '@/assets/crown.svg';
 import './navigation.style.scss';
 import { useUserStore } from '@/contexts/user.context';
+import { signOutUser } from '@/utils/firebase/firebase.utils';
 
 const Navigation = () => {
   const { currentUser } = useUserStore();
+  const signOutHandler = async () => {
+    await signOutUser();
+  };
 
   return (
     <Fragment>
@@ -20,7 +24,9 @@ const Navigation = () => {
             SHOP
           </Link>
           {currentUser ? (
-            <span className="nav-link">SIGN OUT</span>
+            <span className="nav-link" onClick={signOutHandler}>
+              SIGN OUT
+            </span>
           ) : (
             <Link className="nav-link" to="/auth">
               SIGN IN
