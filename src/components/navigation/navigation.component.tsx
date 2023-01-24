@@ -6,9 +6,12 @@ import CartDropdown from '../cart-dropdown/cart-dropdown.component';
 import './navigation.style.scss';
 import { useUserStore } from '@/contexts/user.context';
 import { signOutUser } from '@/utils/firebase/firebase.utils';
+import { useCartStore } from '@/contexts';
 
 const Navigation = () => {
   const { currentUser } = useUserStore();
+  const { visible } = useCartStore();
+
   const signOutHandler = async () => {
     await signOutUser();
   };
@@ -35,7 +38,7 @@ const Navigation = () => {
             </Link>
           )}
           <CardIcon></CardIcon>
-          <CartDropdown></CartDropdown>
+          {visible && <CartDropdown></CartDropdown>}
         </div>
       </div>
       <Outlet></Outlet>
