@@ -1,6 +1,13 @@
 import './category-item.style.scss';
 
-const CategoryItem = ({ category }) => {
+interface CategoryItemProps {
+  category: {
+    imageUrl: string;
+    title: string;
+  };
+}
+
+const CategoryItem = ({ category }: CategoryItemProps) => {
   const { imageUrl, title } = category;
 
   return (
@@ -8,7 +15,7 @@ const CategoryItem = ({ category }) => {
       <div
         className="background-image"
         style={{
-          backgroundImage: `url(${imageUrl})`
+          backgroundImage: `url(${imageUrl})`,
         }}
       ></div>
       <div className="category-body-container">

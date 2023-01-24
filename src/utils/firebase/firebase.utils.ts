@@ -10,6 +10,7 @@ import {
   onAuthStateChanged,
 } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import type { User } from '@/contexts/user.context';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBr98gbEN0s_VSq7zZT0kfP6MxBsSFHBuE',
@@ -33,10 +34,7 @@ export const signInWithGoogleRedirect = () => signInWithRedirect(auth, googlePro
 
 export const db = getFirestore();
 
-export const createUserDocumentFromAuth = async (
-  userAuth,
-  additionalInformation = { displayName: 'mike' }
-) => {
+export const createUserDocumentFromAuth = async (userAuth: any, additionalInformation = {}) => {
   if (!userAuth) return;
 
   const userDocRef = doc(db, 'users', userAuth.uid);
@@ -48,27 +46,26 @@ export const createUserDocumentFromAuth = async (
     const createdAt = new Date();
 
     try {
-      await setDoc(userDocRef, {
+      const data = {
         displayName,
         email,
         createdAt,
         ...additionalInformation,
-      });
-    } catch (error) {
-      console.log('error creating the user', error.message);
+      };
+      await setDoc(userDocRef, data);
+    } catch (error: unknown) {
+      console.log('error creating the user', (error as Error).message);
     }
   }
 
   return userDocRef;
 };
 
-export const createAuthUserWithEmailAndPassword = async (email, password) => {
-  if (!email || !password) return;
-
+export const createAuthUserWithEmailAndPassword = async (email: string, password: string) => {
   return await createUserWithEmailAndPassword(auth, email, password);
 };
 
-export const signInAuthUserWithEmailAndPassword = async (email, password) => {
+export const signInAuthUserWithEmailAndPassword = async (email: string, password: string) => {
   if (!email || !password) return;
 
   return await signInWithEmailAndPassword(auth, email, password);
@@ -76,4 +73,5 @@ export const signInAuthUserWithEmailAndPassword = async (email, password) => {
 
 export const signOutUser = async () => await signOut(auth);
 
-export const onAuthStateChangedListener = callback => onAuthStateChanged(auth, callback);
+export const onAuthStateChangedListener = (callback: (user: User | null) => void) =>
+  onAuthStateChanged(auth, callback);

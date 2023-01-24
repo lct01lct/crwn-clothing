@@ -1,5 +1,5 @@
 import { useState } from 'react';
-
+import type { FormEvent } from 'react';
 import FormInput from '../form-input/form-input.component';
 import Button from '@/components/button/button.component';
 import './sign-in-form.style.scss';
@@ -26,15 +26,15 @@ const SignInForm = () => {
     await signInWithGooglePopup();
   };
 
-  const handleSubmit = async event => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     try {
       await signInAuthUserWithEmailAndPassword(email, password);
 
       resetFormFields();
-    } catch (error) {
-      const code = error.code;
+    } catch (error: unknown) {
+      const code = (error as any).code;
       if (code === 'auth/wrong-password') {
         alert('incorrent password for email');
       } else if (code === 'auth/user-not-found') {
@@ -45,8 +45,8 @@ const SignInForm = () => {
     }
   };
 
-  const handleChange = event => {
-    const { name, value } = event.target;
+  const handleChange = (event: Event) => {
+    const { name, value } = event.target as HTMLInputElement;
 
     setFormFields({
       ...formFields,

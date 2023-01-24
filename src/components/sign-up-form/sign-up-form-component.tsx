@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { FormEvent } from 'react';
 import {
   createAuthUserWithEmailAndPassword,
   createUserDocumentFromAuth,
@@ -23,7 +24,7 @@ const SignUpForm = () => {
     setFormFields(defaultFormFields);
   };
 
-  const handleSubmit = async event => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     if (password !== confirmPassword) {
@@ -36,7 +37,7 @@ const SignUpForm = () => {
 
       await createUserDocumentFromAuth(user, { displayName });
       resetFormFields();
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'auth/email-already-in-use') {
         alert('Cannot create user, email already in use');
       } else {
@@ -45,8 +46,8 @@ const SignUpForm = () => {
     }
   };
 
-  const handleChange = event => {
-    const { name, value } = event.target;
+  const handleChange = (event: Event) => {
+    const { name, value } = event.target as HTMLInputElement;
 
     setFormFields({
       ...formFields,
