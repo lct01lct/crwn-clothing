@@ -1,6 +1,8 @@
 import { Fragment } from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import CrwnLogoSrc from '@/assets/crown.svg';
+import CardIcon from '../cart-icon/cart-icon.component';
+import CartDropdown from '../cart-dropdown/cart-dropdown.component';
 import './navigation.style.scss';
 import { useUserStore } from '@/contexts/user.context';
 import { signOutUser } from '@/utils/firebase/firebase.utils';
@@ -32,6 +34,8 @@ const Navigation = () => {
               SIGN IN
             </Link>
           )}
+          <CardIcon></CardIcon>
+          <CartDropdown></CartDropdown>
         </div>
       </div>
       <Outlet></Outlet>

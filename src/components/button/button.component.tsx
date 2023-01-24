@@ -11,7 +11,7 @@ const BUTTON_TYPES_CLASSES: {
 
 interface ButtonProps {
   children?: any;
-  buttonType?: 'google' | 'inverted' | string;
+  buttonType?: 'google' | 'inverted';
   [otherProps: string]: any;
 }
 
