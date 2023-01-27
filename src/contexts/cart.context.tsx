@@ -1,5 +1,5 @@
 import { useState, useContext, createContext, useEffect } from 'react';
-import type { ProductItem } from './product.context';
+import type { ProductItem } from './categories.context';
 
 export interface CartItem extends ProductItem {
   quantity: number;

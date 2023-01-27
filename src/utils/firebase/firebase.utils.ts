@@ -9,8 +9,19 @@ import {
   signOut,
   onAuthStateChanged,
 } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  writeBatch,
+  query,
+  getDocs,
+} from 'firebase/firestore';
 import type { User } from '@/contexts/user.context';
+import SHOP_DATA from '@/data/shop-data';
+import type { Category } from '@/contexts/types';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBr98gbEN0s_VSq7zZT0kfP6MxBsSFHBuE',
@@ -75,3 +86,37 @@ export const signOutUser = async () => await signOut(auth);
 
 export const onAuthStateChangedListener = (callback: (user: User | null) => void) =>
   onAuthStateChanged(auth, callback);
+
+const CATEGORIES_KEY = 'categories';
+
+export const addCollectionAndDocuments = async (
+  collectionKey: string,
+  objectsToAdd: typeof SHOP_DATA
+) => {
+  const collectionRef = collection(db, collectionKey);
+  const batch = writeBatch(db);
+
+  objectsToAdd.forEach(object => {
+    const docRef = doc(collectionRef, object.title.toLowerCase());
+    batch.set(docRef, object);
+  });
+
+  await batch.commit();
+  console.log('Init categories');
+};
+
+export const getCategoriesAndDocuments = async () => {
+  const collectionRef = collection(db, CATEGORIES_KEY);
+  const q = query(collectionRef);
+  const querySnapshot = await getDocs(q);
+  const categoryMap = querySnapshot.docs.reduce<{
+    [key: Category['title']]: Category['items'];
+  }>((prev, docSnapshot) => {
+    const { title, items } = docSnapshot.data() as Category;
+    prev[title.toLowerCase()] = items;
+
+    return prev;
+  }, {});
+
+  return categoryMap;
+};
