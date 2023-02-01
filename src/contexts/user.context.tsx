@@ -20,7 +20,7 @@ const userReducer = (
     currentUser: User | null;
   },
   action: {
-    type: string;
+    type: 'set_current_user';
     payload: User | null;
   }
 ) => {

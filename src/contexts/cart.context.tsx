@@ -1,11 +1,11 @@
-import { useState, useContext, createContext, useEffect } from 'react';
+import { useState, useContext, createContext, useEffect, useReducer } from 'react';
 import type { ProductItem } from './categories.context';
 
 export interface CartItem extends ProductItem {
   quantity: number;
 }
 
-export interface CartReducer {
+export interface CartStore {
   visible: boolean;
   setVisible: (visible: boolean) => void;
 
@@ -19,7 +19,7 @@ export interface CartReducer {
   total: number;
 }
 
-export const cartContext = createContext<CartReducer>({
+export const cartContext = createContext<CartStore>({
   visible: false,
   setVisible: () => {},
   cartItems: [],
@@ -75,47 +75,79 @@ const clearProduct = (cartItems: CartItem[], product: ProductItem) => {
   const idx = cartItems.findIndex(cartItem => cartItem.id === product.id);
 
   if (idx > -1) {
-    return cartItems.splice(idx, 1);
-  } else {
-    return cartItems;
+    cartItems.splice(idx, 1);
+  }
+
+  return cartItems;
+};
+
+const initCartState = {
+  visible: false,
+  cartItems: [],
+  cartCount: 0,
+  total: 0,
+};
+
+interface CartState {
+  visible: boolean;
+  cartItems: CartItem[];
+  cartCount: number;
+  total: number;
+}
+
+type ActionType<Type extends string, Payload> = { type: Type; payload: Payload };
+type CartAction =
+  | ActionType<'set_visible', boolean>
+  | ActionType<'set_cartItems', { cartItems: CartItem[]; cartCount: number; total: number }>;
+
+const cartReducer = (state: CartState, { type, payload }: CartAction) => {
+  switch (type) {
+    case 'set_visible':
+      return {
+        ...state,
+        visible: payload,
+      };
+    case 'set_cartItems':
+      return {
+        ...state,
+        ...payload,
+      };
+    default:
+      throw new Error(`Unhandled type ${type} in cartReducer`);
   }
 };
 
 export const CartProvider = ({ children }: any) => {
   const { Provider } = cartContext;
-  const [visible, setVisible] = useState<boolean>(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [cartCount, setCartCount] = useState<number>(0);
-  const [total, setTotal] = useState<number>(0);
+  const [state, dispatch] = useReducer(cartReducer, initCartState);
+  const { cartItems } = state;
 
-  useEffect(() => {
-    setCartCount(
-      cartItems.reduce((prev, item) => {
-        return prev + item.quantity;
-      }, 0)
-    );
-  }, [cartItems]);
+  const setVisible = (visible: boolean) => {
+    dispatch({ type: 'set_visible', payload: visible });
+  };
 
-  useEffect(() => {
-    setTotal(cartItems.reduce<number>((prev, item) => prev + item.quantity * item.price, 0));
-  }, [cartItems]);
+  const updateCartReducer = (newCartItems: CartItem[]) => {
+    const cartCount = newCartItems.reduce((prev, item) => {
+      return prev + item.quantity;
+    }, 0);
+    const total = newCartItems.reduce<number>((prev, item) => prev + item.quantity * item.price, 0);
 
-  const value: CartReducer = {
-    visible,
+    dispatch({ type: 'set_cartItems', payload: { cartCount, total, cartItems: newCartItems } });
+  };
+
+  const value: CartStore = {
+    ...state,
     setVisible,
-    cartItems,
-    addCartItem: product => {
-      setCartItems(addProduct(cartItems, product));
+    addCartItem(product) {
+      updateCartReducer(addProduct(cartItems, product));
     },
     removeCartItem(product) {
-      setCartItems(removeProduct(cartItems, product));
+      updateCartReducer(removeProduct(cartItems, product));
     },
     clearCartItem(product) {
-      setCartItems(clearProduct(cartItems, product));
+      updateCartReducer(clearProduct(cartItems, product));
     },
-    setCartItems,
-    cartCount,
-    total,
+    setCartItems: updateCartReducer,
   };
 
   return <Provider value={value}> {children} </Provider>;
