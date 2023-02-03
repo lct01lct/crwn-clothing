@@ -1,6 +1,13 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  FC,
+  PropsWithChildren
+} from 'react';
 import { getCategoriesAndDocuments } from '@/utils/firebase/firebase.utils';
-import type { Category, CategoryMap } from './types';
+import type { CategoryMap } from './types';
 
 export interface ProductItem {
   id: number;
@@ -9,28 +16,56 @@ export interface ProductItem {
   price: number;
 }
 
-interface CategoriesReducer {
+interface CategoriesStoreState {
   categoriesMap: CategoryMap;
-  setCategoriesMap: (products: CategoryMap) => void;
 }
 
-const categoriesContext = createContext<CategoriesReducer>({
+type PaddingStr<
+  State,
+  Str extends string
+> = State extends `${infer First}${infer Rest}`
+  ? `${Str}${Uppercase<First>}${Rest}`
+  : never;
+type ActionType<Store extends Record<string, any>> = {
+  [StateType in keyof Store as PaddingStr<StateType, 'set'>]: (
+    newState: Store[StateType]
+  ) => void;
+};
+type ContextType<Store extends Record<string, any>> = Store & ActionType<Store>;
+
+const categoriesContext = createContext<ContextType<CategoriesStoreState>>({
   categoriesMap: {},
-  setCategoriesMap: () => {},
+  setCategoriesMap: () => {}
 });
 
-export const CategoriesProvider = ({ children }: any) => {
+export const CategoriesProvider: FC<PropsWithChildren> = ({ children }) => {
   const { Provider } = categoriesContext;
-  const [categoriesMap, setCategoriesMap] = useState<CategoryMap>({});
-  const value: CategoriesReducer = { categoriesMap, setCategoriesMap };
+  const [state, dispatch] = useState<CategoriesStoreState>({
+    categoriesMap: {}
+  });
+
+  const setCategoriesMap = (categoriesMap: CategoryMap) => {
+    dispatch((state) => ({ ...state, categoriesMap }));
+  };
 
   useEffect(() => {
-    getCategoriesAndDocuments().then(data => {
+    getCategoriesAndDocuments().then((data) => {
       setCategoriesMap(data);
     });
   }, []);
 
-  return <Provider value={value}> {children} </Provider>;
+  const value = {
+    ...state,
+    setCategoriesMap
+  };
+
+  return <Provider value={value}>{children}</Provider>;
 };
 
-export const useCategoriesStore = () => useContext(categoriesContext);
+export const useCategoriesStore = () => {
+  const baseStore = useContext(categoriesContext);
+
+  const { categoriesMap, setCategoriesMap } = baseStore;
+
+  return { categoriesMap, setCategoriesMap };
+};

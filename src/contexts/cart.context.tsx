@@ -1,4 +1,10 @@
-import { useState, useContext, createContext, useEffect, useReducer } from 'react';
+import {
+  useState,
+  useContext,
+  createContext,
+  useEffect,
+  useReducer
+} from 'react';
 import type { ProductItem } from './categories.context';
 
 export interface CartItem extends ProductItem {
@@ -28,15 +34,19 @@ export const cartContext = createContext<CartStore>({
   removeCartItem: () => {},
   clearCartItem: () => {},
   cartCount: 0,
-  total: 0,
+  total: 0
 });
 
 const addProduct = (cartItems: CartItem[], product: ProductItem) => {
-  const existCartItem = cartItems.find(cartItem => cartItem.id === product.id);
+  const existCartItem = cartItems.find(
+    (cartItem) => cartItem.id === product.id
+  );
 
   if (existCartItem) {
-    return cartItems.map(item =>
-      item.id === existCartItem.id ? { ...item, quantity: existCartItem.quantity + 1 } : item
+    return cartItems.map((item) =>
+      item.id === existCartItem.id
+        ? { ...item, quantity: existCartItem.quantity + 1 }
+        : item
     );
   } else {
     const { id, name, price, imageUrl } = product;
@@ -45,7 +55,7 @@ const addProduct = (cartItems: CartItem[], product: ProductItem) => {
       name,
       price,
       imageUrl,
-      quantity: 1,
+      quantity: 1
     };
 
     return [...cartItems, newCartItem];
@@ -53,18 +63,20 @@ const addProduct = (cartItems: CartItem[], product: ProductItem) => {
 };
 
 const removeProduct = (cartItems: CartItem[], product: ProductItem) => {
-  const existCartItem = cartItems.find(cartItem => cartItem.id === product.id);
+  const existCartItem = cartItems.find(
+    (cartItem) => cartItem.id === product.id
+  );
 
   if (!existCartItem) {
     return cartItems;
   } else if (existCartItem.quantity === 1) {
-    return cartItems.filter(item => item !== existCartItem);
+    return cartItems.filter((item) => item !== existCartItem);
   } else {
-    return cartItems.map(item =>
+    return cartItems.map((item) =>
       item === existCartItem
         ? {
             ...item,
-            quantity: item.quantity - 1,
+            quantity: item.quantity - 1
           }
         : item
     );
@@ -72,7 +84,7 @@ const removeProduct = (cartItems: CartItem[], product: ProductItem) => {
 };
 
 const clearProduct = (cartItems: CartItem[], product: ProductItem) => {
-  const idx = cartItems.findIndex(cartItem => cartItem.id === product.id);
+  const idx = cartItems.findIndex((cartItem) => cartItem.id === product.id);
 
   if (idx > -1) {
     cartItems.splice(idx, 1);
@@ -83,34 +95,35 @@ const clearProduct = (cartItems: CartItem[], product: ProductItem) => {
 
 const initCartState = {
   visible: false,
-  cartItems: [],
+  cartItems: [] as CartItem[],
   cartCount: 0,
-  total: 0,
+  total: 0
 };
 
-interface CartState {
-  visible: boolean;
-  cartItems: CartItem[];
-  cartCount: number;
-  total: number;
-}
+type CartState = typeof initCartState;
 
-type ActionType<Type extends string, Payload> = { type: Type; payload: Payload };
+type ActionType<Type extends string, Payload> = {
+  type: Type;
+  payload: Payload;
+};
 type CartAction =
   | ActionType<'set_visible', boolean>
-  | ActionType<'set_cartItems', { cartItems: CartItem[]; cartCount: number; total: number }>;
+  | ActionType<
+      'set_cartItems',
+      { cartItems: CartItem[]; cartCount: number; total: number }
+    >;
 
 const cartReducer = (state: CartState, { type, payload }: CartAction) => {
   switch (type) {
     case 'set_visible':
       return {
         ...state,
-        visible: payload,
+        visible: payload
       };
     case 'set_cartItems':
       return {
         ...state,
-        ...payload,
+        ...payload
       };
     default:
       throw new Error(`Unhandled type ${type} in cartReducer`);
@@ -130,9 +143,15 @@ export const CartProvider = ({ children }: any) => {
     const cartCount = newCartItems.reduce((prev, item) => {
       return prev + item.quantity;
     }, 0);
-    const total = newCartItems.reduce<number>((prev, item) => prev + item.quantity * item.price, 0);
+    const total = newCartItems.reduce<number>(
+      (prev, item) => prev + item.quantity * item.price,
+      0
+    );
 
-    dispatch({ type: 'set_cartItems', payload: { cartCount, total, cartItems: newCartItems } });
+    dispatch({
+      type: 'set_cartItems',
+      payload: { cartCount, total, cartItems: newCartItems }
+    });
   };
 
   const value: CartStore = {
@@ -147,7 +166,7 @@ export const CartProvider = ({ children }: any) => {
     clearCartItem(product) {
       updateCartReducer(clearProduct(cartItems, product));
     },
-    setCartItems: updateCartReducer,
+    setCartItems: updateCartReducer
   };
 
   return <Provider value={value}> {children} </Provider>;
