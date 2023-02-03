@@ -40,16 +40,22 @@ const categoriesContext = createContext<ContextType<CategoriesStoreState>>({
 
 export const CategoriesProvider: FC<PropsWithChildren> = ({ children }) => {
   const { Provider } = categoriesContext;
-  const [categoriesMap, setCategoriesMap] = useState<CategoryMap>({});
+  const [state, dispatch] = useState<{ categoriesMap: CategoryMap }>({
+    categoriesMap: {}
+  });
+
+  const setCategoriesMap = (data: CategoryMap) => {
+    dispatch((state) => ({ ...state, data }));
+  };
 
   useEffect(() => {
     getCategoriesAndDocuments().then((data) => {
-      setCategoriesMap(data);
+      dispatch((state) => ({ ...state, data }));
     });
   }, []);
 
   const value = {
-    categoriesMap,
+    ...state,
     setCategoriesMap
   };
 
