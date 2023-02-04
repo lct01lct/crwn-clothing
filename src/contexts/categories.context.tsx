@@ -1,13 +1,7 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  FC,
-  PropsWithChildren
-} from 'react';
 import { getCategoriesAndDocuments } from '@/utils/firebase/firebase.utils';
 import type { CategoryMap } from './types';
+import { createStore } from '@/utils';
+import { useEffect } from 'react';
 
 export interface ProductItem {
   id: number;
@@ -16,50 +10,14 @@ export interface ProductItem {
   price: number;
 }
 
-interface CategoriesStoreState {
-  categoriesMap: CategoryMap;
-}
+export const [CategoriesProvider, useCategoriesStore] = createStore('categories-store', {
+  states: { categoriesMap: {} as CategoryMap },
 
-type PaddingStr<
-  State,
-  Str extends string
-> = State extends `${infer First}${infer Rest}`
-  ? `${Str}${Uppercase<First>}${Rest}`
-  : never;
-type ActionType<Store extends Record<string, any>> = {
-  [StateType in keyof Store as PaddingStr<StateType, 'set'>]: (
-    newState: Store[StateType]
-  ) => void;
-};
-type ContextType<Store extends Record<string, any>> = Store & ActionType<Store>;
-
-const categoriesContext = createContext<ContextType<CategoriesStoreState>>({
-  categoriesMap: {},
-  setCategoriesMap: () => {}
-});
-
-export const CategoriesProvider: FC<PropsWithChildren> = ({ children }) => {
-  const { Provider } = categoriesContext;
-  const [categoriesMap, setCategoriesMap] = useState<CategoryMap>({});
-
-  useEffect(() => {
-    getCategoriesAndDocuments().then((data) => {
-      setCategoriesMap(data);
+  buildMoreActions: ({ setCategoriesMap }) => {
+    useEffect(() => {
+      getCategoriesAndDocuments().then(data => {
+        setCategoriesMap(data);
+      });
     });
-  }, []);
-
-  const value = {
-    categoriesMap,
-    setCategoriesMap
-  };
-
-  return <Provider value={value}>{children}</Provider>;
-};
-
-export const useCategoriesStore = () => {
-  const baseStore = useContext(categoriesContext);
-
-  const { categoriesMap, setCategoriesMap } = baseStore;
-
-  return { categoriesMap, setCategoriesMap };
-};
+  },
+});

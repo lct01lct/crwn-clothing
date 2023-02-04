@@ -4,12 +4,18 @@ import type { ContextType, PaddingStr } from './type';
 import { titleCase } from './utils';
 
 const storeIdsSet = new Set<string>([]);
-const storesMap = new Map<string, Function>();
 
-export const createStore = <State extends object, MoreActions extends Record<string, Function>>(
+export const createStore = <
+  State extends object,
+  MoreActions extends Record<string, Function>,
+  Getters extends object
+>(
   id: string,
-  state: State,
-  buildMoreActions?: (store: ContextType<State>) => MoreActions
+  initStore: {
+    states?: State;
+    buildMoreActions?: (store: ContextType<State>) => MoreActions | void;
+    buildGetters?: (store: ContextType<State>) => Getters | void;
+  }
 ) => {
   type MethodName = PaddingStr<keyof State, 'set'>;
 
@@ -17,38 +23,38 @@ export const createStore = <State extends object, MoreActions extends Record<str
     throw new Error('[store: Error] Do not set repetitive id .');
   }
 
+  const { buildMoreActions, buildGetters } = initStore;
+  const states = initStore.states || ({} as State);
+
   const actions = {} as Record<MethodName, () => void>;
 
-  Object.keys(state).forEach(key => {
+  Object.keys(states).forEach(key => {
     actions[`set${titleCase(key)}` as MethodName] = () => {};
   });
 
-  const context = createContext<ContextType<State>>({
-    ...state,
+  const context = createContext<ContextType<State> & MoreActions & Getters>({
+    ...states,
     ...actions,
-  } as ContextType<State>);
+  } as ContextType<State> & MoreActions & Getters);
 
   const ContextComp: FC<PropsWithChildren> = ({ children }) => {
     const { Provider } = context;
     const value = {} as ContextType<State>;
 
-    Object.entries(state).forEach(([key, state]) => {
+    Object.entries(states).forEach(([key, state]) => {
       const [data, setData] = useState(state);
       value[key as keyof State] = data;
       value[`set${titleCase(key)}` as MethodName] = setData as ContextType<State>[MethodName];
     });
 
     const moreActions = buildMoreActions?.(value);
+    const getters = buildGetters?.(value);
 
-    return <Provider value={Object.assign(value, moreActions)}>{children}</Provider>;
+    return <Provider value={Object.assign(value, moreActions, getters)}>{children}</Provider>;
   };
 
-  return {
-    Provider: ContextComp,
-    useStore: () => useContext(context) as ContextType<State> & MoreActions,
-  };
-};
+  const Provider = ContextComp;
+  const useStore = () => useContext(context);
 
-const Provider = () => {
-  return <></>;
+  return [Provider, useStore] as [any, () => State & ContextType<State> & MoreActions & Getters];
 };
