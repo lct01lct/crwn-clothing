@@ -15,7 +15,6 @@ const DirectoryItem = ({ category }: DirectoryItemProps) => {
   const naviagte = useNavigate();
   const onNavigateHandler = () => {
     naviagte(`shop/${route}`);
-    console.log(`shop/${route}`);
   };
 
   return (
