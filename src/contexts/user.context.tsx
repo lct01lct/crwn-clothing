@@ -1,15 +1,15 @@
 import { useEffect } from 'react';
 import {
   onAuthStateChangedListener,
-  createUserDocumentFromAuth,
+  createUserDocumentFromAuth
 } from '@/utils/firebase/firebase.utils';
 import { createStore } from '@/utils';
 
 export type User = Record<string, any>;
 
-export const [UserProvider, useUserStore] = createStore('user-store', {
+export const useUserStore = createStore('user-store', {
   states: {
-    currentUser: null as null | User,
+    currentUser: null as null | User
   },
 
   buildMoreActions({ setCurrentUser }) {
@@ -23,5 +23,5 @@ export const [UserProvider, useUserStore] = createStore('user-store', {
 
       return unsubscibe;
     }, []);
-  },
+  }
 });

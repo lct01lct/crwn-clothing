@@ -10,14 +10,14 @@ export interface ProductItem {
   price: number;
 }
 
-export const [CategoriesProvider, useCategoriesStore] = createStore('categories-store', {
+export const useCategoriesStore = createStore('categories-store', {
   states: { categoriesMap: {} as CategoryMap },
 
   buildMoreActions: ({ setCategoriesMap }) => {
     useEffect(() => {
-      getCategoriesAndDocuments().then(data => {
+      getCategoriesAndDocuments().then((data) => {
         setCategoriesMap(data);
       });
     });
-  },
+  }
 });

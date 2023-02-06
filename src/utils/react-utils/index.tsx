@@ -28,13 +28,13 @@ export const createStore = <
 
   const actions = {} as Record<MethodName, () => void>;
 
-  Object.keys(states).forEach(key => {
+  Object.keys(states).forEach((key) => {
     actions[`set${titleCase(key)}` as MethodName] = () => {};
   });
 
   const context = createContext<ContextType<State> & MoreActions & Getters>({
     ...states,
-    ...actions,
+    ...actions
   } as ContextType<State> & MoreActions & Getters);
 
   const ContextComp: FC<PropsWithChildren> = ({ children }) => {
@@ -44,17 +44,35 @@ export const createStore = <
     Object.entries(states).forEach(([key, state]) => {
       const [data, setData] = useState(state);
       value[key as keyof State] = data;
-      value[`set${titleCase(key)}` as MethodName] = setData as ContextType<State>[MethodName];
+      value[`set${titleCase(key)}` as MethodName] =
+        setData as ContextType<State>[MethodName];
     });
 
     const moreActions = buildMoreActions?.(value);
     const getters = buildGetters?.(value);
 
-    return <Provider value={Object.assign(value, moreActions, getters)}>{children}</Provider>;
+    return (
+      <Provider value={Object.assign(value, moreActions, getters)}>
+        {children}
+      </Provider>
+    );
   };
 
   const Provider = ContextComp;
   const useStore = () => useContext(context);
+  ProviderList.push(Provider);
+  return () => useContext(context);
+};
 
-  return [Provider, useStore] as [any, () => State & ContextType<State> & MoreActions & Getters];
+const ProviderList: FC<PropsWithChildren<{}>>[] = [];
+
+export const Provider: FC<PropsWithChildren<{}>> = ({ children }) => {
+  let resultNode = children;
+
+  while (ProviderList.length) {
+    const Fc = ProviderList.pop();
+    if (!Fc) break;
+    resultNode = <Fc> {resultNode} </Fc>;
+  }
+  return <>{resultNode}</>;
 };

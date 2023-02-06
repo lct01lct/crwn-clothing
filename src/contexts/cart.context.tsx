@@ -5,10 +5,10 @@ export interface CartItem extends ProductItem {
   quantity: number;
 }
 
-export const [CartProvider, useCartStore] = createStore('cart-store', {
+export const useCartStore = createStore('cart-store', {
   states: {
     visible: false,
-    cartItems: [] as CartItem[],
+    cartItems: [] as CartItem[]
   },
 
   buildMoreActions: ({ cartItems, setCartItems }) => {
@@ -25,29 +25,36 @@ export const [CartProvider, useCartStore] = createStore('cart-store', {
       },
       clearCartItem(product: ProductItem) {
         update(clearProduct(cartItems, product));
-      },
+      }
     };
   },
 
   buildGetters: ({ cartItems }) => {
-    const total = cartItems.reduce<number>((prev, item) => prev + item.quantity * item.price, 0);
+    const total = cartItems.reduce<number>(
+      (prev, item) => prev + item.quantity * item.price,
+      0
+    );
     const cartCount = cartItems.reduce((prev, item) => {
       return prev + item.quantity;
     }, 0);
 
     return {
       total,
-      cartCount,
+      cartCount
     };
-  },
+  }
 });
 
 const addProduct = (cartItems: CartItem[], product: ProductItem) => {
-  const existCartItem = cartItems.find(cartItem => cartItem.id === product.id);
+  const existCartItem = cartItems.find(
+    (cartItem) => cartItem.id === product.id
+  );
 
   if (existCartItem) {
-    return cartItems.map(item =>
-      item.id === existCartItem.id ? { ...item, quantity: existCartItem.quantity + 1 } : item
+    return cartItems.map((item) =>
+      item.id === existCartItem.id
+        ? { ...item, quantity: existCartItem.quantity + 1 }
+        : item
     );
   } else {
     const { id, name, price, imageUrl } = product;
@@ -56,7 +63,7 @@ const addProduct = (cartItems: CartItem[], product: ProductItem) => {
       name,
       price,
       imageUrl,
-      quantity: 1,
+      quantity: 1
     };
 
     return [...cartItems, newCartItem];
@@ -64,18 +71,20 @@ const addProduct = (cartItems: CartItem[], product: ProductItem) => {
 };
 
 const removeProduct = (cartItems: CartItem[], product: ProductItem) => {
-  const existCartItem = cartItems.find(cartItem => cartItem.id === product.id);
+  const existCartItem = cartItems.find(
+    (cartItem) => cartItem.id === product.id
+  );
 
   if (!existCartItem) {
     return cartItems;
   } else if (existCartItem.quantity === 1) {
-    return cartItems.filter(item => item !== existCartItem);
+    return cartItems.filter((item) => item !== existCartItem);
   } else {
-    return cartItems.map(item =>
+    return cartItems.map((item) =>
       item === existCartItem
         ? {
             ...item,
-            quantity: item.quantity - 1,
+            quantity: item.quantity - 1
           }
         : item
     );
@@ -83,7 +92,7 @@ const removeProduct = (cartItems: CartItem[], product: ProductItem) => {
 };
 
 const clearProduct = (cartItems: CartItem[], product: ProductItem) => {
-  const idx = cartItems.findIndex(cartItem => cartItem.id === product.id);
+  const idx = cartItems.findIndex((cartItem) => cartItem.id === product.id);
 
   if (idx > -1) {
     return cartItems.filter((item, index) => idx !== index);
