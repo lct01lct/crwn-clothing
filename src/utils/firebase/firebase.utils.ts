@@ -7,7 +7,7 @@ import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
+  onAuthStateChanged
 } from 'firebase/auth';
 import {
   getFirestore,
@@ -17,11 +17,10 @@ import {
   collection,
   writeBatch,
   query,
-  getDocs,
+  getDocs
 } from 'firebase/firestore';
 import type { User } from '@/contexts/user.context';
 import SHOP_DATA from '@/data/shop-data';
-import type { Category } from '@/contexts/types';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBr98gbEN0s_VSq7zZT0kfP6MxBsSFHBuE',
@@ -29,23 +28,28 @@ const firebaseConfig = {
   projectId: 'crwn-clothing-db-31d98',
   storageBucket: 'crwn-clothing-db-31d98.appspot.com',
   messagingSenderId: '1067718238740',
-  appId: '1:1067718238740:web:36c33d4c6725684565bd01',
+  appId: '1:1067718238740:web:36c33d4c6725684565bd01'
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
 
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
-  prompt: 'select_account',
+  prompt: 'select_account'
 });
 
 export const auth = getAuth();
-export const signInWithGooglePopup = () => signInWithPopup(auth, googleProvider);
-export const signInWithGoogleRedirect = () => signInWithRedirect(auth, googleProvider);
+export const signInWithGooglePopup = () =>
+  signInWithPopup(auth, googleProvider);
+export const signInWithGoogleRedirect = () =>
+  signInWithRedirect(auth, googleProvider);
 
 export const db = getFirestore();
 
-export const createUserDocumentFromAuth = async (userAuth: any, additionalInformation = {}) => {
+export const createUserDocumentFromAuth = async (
+  userAuth: any,
+  additionalInformation = {}
+) => {
   if (!userAuth) return;
 
   const userDocRef = doc(db, 'users', userAuth.uid);
@@ -61,7 +65,7 @@ export const createUserDocumentFromAuth = async (userAuth: any, additionalInform
         displayName,
         email,
         createdAt,
-        ...additionalInformation,
+        ...additionalInformation
       };
       await setDoc(userDocRef, data);
     } catch (error: unknown) {
@@ -72,11 +76,17 @@ export const createUserDocumentFromAuth = async (userAuth: any, additionalInform
   return userDocRef;
 };
 
-export const createAuthUserWithEmailAndPassword = async (email: string, password: string) => {
+export const createAuthUserWithEmailAndPassword = async (
+  email: string,
+  password: string
+) => {
   return await createUserWithEmailAndPassword(auth, email, password);
 };
 
-export const signInAuthUserWithEmailAndPassword = async (email: string, password: string) => {
+export const signInAuthUserWithEmailAndPassword = async (
+  email: string,
+  password: string
+) => {
   if (!email || !password) return;
 
   return await signInWithEmailAndPassword(auth, email, password);
@@ -84,8 +94,9 @@ export const signInAuthUserWithEmailAndPassword = async (email: string, password
 
 export const signOutUser = async () => await signOut(auth);
 
-export const onAuthStateChangedListener = (callback: (user: User | null) => void) =>
-  onAuthStateChanged(auth, callback);
+export const onAuthStateChangedListener = (
+  callback: (user: User | null) => void
+) => onAuthStateChanged(auth, callback);
 
 const CATEGORIES_KEY = 'categories';
 
@@ -96,7 +107,7 @@ export const addCollectionAndDocuments = async (
   const collectionRef = collection(db, collectionKey);
   const batch = writeBatch(db);
 
-  objectsToAdd.forEach(object => {
+  objectsToAdd.forEach((object) => {
     const docRef = doc(collectionRef, object.title.toLowerCase());
     batch.set(docRef, object);
   });
@@ -109,14 +120,6 @@ export const getCategoriesAndDocuments = async () => {
   const collectionRef = collection(db, CATEGORIES_KEY);
   const q = query(collectionRef);
   const querySnapshot = await getDocs(q);
-  const categoryMap = querySnapshot.docs.reduce<{
-    [key: Category['title']]: Category['items'];
-  }>((prev, docSnapshot) => {
-    const { title, items } = docSnapshot.data() as Category;
-    prev[title.toLowerCase()] = items;
 
-    return prev;
-  }, {});
-
-  return categoryMap;
+  return querySnapshot.docs.map((docSnapShot) => docSnapShot.data());
 };
