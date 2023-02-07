@@ -58,10 +58,10 @@ export const createStore = <
     );
   };
 
-  const Provider = ContextComp;
+  ProviderList.push(ContextComp);
+
   const useStore = () => useContext(context);
-  ProviderList.push(Provider);
-  return () => useContext(context);
+  return useStore;
 };
 
 const ProviderList: FC<PropsWithChildren<{}>>[] = [];
